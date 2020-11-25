@@ -38,37 +38,31 @@ public class CategoryScraper {
         Set<Category> categories = new HashSet<>();
         Set<CategoryDTO> nodes = new HashSet<>();
 
-        jsonArray.forEach(obj -> {
-            categories.add(gson.fromJson(obj.getAsJsonObject(), Category.class));
-        });
+        jsonArray.forEach(obj -> categories.add(gson.fromJson(obj.getAsJsonObject(), Category.class)));
 
-        categories.forEach(c -> {
-            c.getCategoryNodes().forEach(node -> {
+        categories.forEach(c -> c.getCategoryNodes().forEach(node -> {
 
-                if (!node.getTitle().contains("Allt inom ") && !node.getHref().contains("rabatt")) {
-                    JsonArray children = JsonParser
-                            .parseString(database.callGet(Constants.BASE_URL.concat(node.getHref()).concat(".json")))
-                            .getAsJsonObject().get("filters").getAsJsonObject().get("categoryFilter").getAsJsonObject()
-                            .get("categoryTree").getAsJsonObject().get("children").getAsJsonArray();
+            if (!node.getTitle().contains("Allt inom ") && !node.getHref().contains("rabatt")) {
+                JsonArray children = JsonParser
+                        .parseString(database.callGet(Constants.BASE_URL.concat(node.getHref()).concat(".json")))
+                        .getAsJsonObject().get("filters").getAsJsonObject().get("categoryFilter").getAsJsonObject()
+                        .get("categoryTree").getAsJsonObject().get("children").getAsJsonArray();
 
-                    if (children.get(0).getAsJsonObject().keySet().contains("children")) {
-                        JsonArray secondChild = children.get(0).getAsJsonObject().get("children").getAsJsonArray();
+                if (children.get(0).getAsJsonObject().keySet().contains("children")) {
+                    JsonArray secondChild = children.get(0).getAsJsonObject().get("children").getAsJsonArray();
 
-                        secondChild.forEach(index -> {
-                            JsonObject obj = index.getAsJsonObject();
-                            nodes.add(
-                                    new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
-                        });
-                    } else {
-                        children.forEach(index -> {
-                            JsonObject obj = index.getAsJsonObject();
-                            nodes.add(
-                                    new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
-                        });
-                    }
+                    secondChild.forEach(index -> {
+                        JsonObject obj = index.getAsJsonObject();
+                        nodes.add(new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
+                    });
+                } else {
+                    children.forEach(index -> {
+                        JsonObject obj = index.getAsJsonObject();
+                        nodes.add(new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
+                    });
                 }
-            });
-        });
+            }
+        }));
 
         Set<CategoryDTO> responseCategories = database.postMultiple(nodes, "http://".concat(Constants.databaseIp)
                 .concat(":").concat(Constants.databasePort).concat("/api/categories/all"));
