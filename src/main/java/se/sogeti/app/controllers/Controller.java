@@ -104,7 +104,7 @@ public class Controller {
 
     public Boolean toggleActive() {
         HttpRequest request = HttpRequest.newBuilder().GET()
-                .uri(URI.create(settings.getApiURL().concat("/status/toggle?value=cs")))
+                .uri(URI.create(settings.getApiURL().concat("/api/status/toggle?value=cs")))
                 .setHeader("User-Agent", settings.getInternalUserAgent()).build();
 
         CompletableFuture<HttpResponse<String>> response = client.sendAsync(request,
