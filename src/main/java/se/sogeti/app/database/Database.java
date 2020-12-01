@@ -21,6 +21,10 @@ public class Database {
         return controller.postMultiple(objects, uri);
     }
 
+    public Boolean toggleActive() {
+        return controller.toggleActive();
+    }
+
     public String getPublished(String objectNumber) {
         return controller.getPublished(objectNumber);
     }
