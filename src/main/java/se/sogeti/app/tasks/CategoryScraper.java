@@ -1,6 +1,9 @@
-package se.sogeti.app.scrapers;
+package se.sogeti.app.tasks;
 
 import java.lang.invoke.MethodHandles;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,21 +20,26 @@ import se.sogeti.app.database.Database;
 import se.sogeti.app.models.Category;
 import se.sogeti.app.models.dto.CategoryDTO;
 
-public class CategoryScraper {
+public class CategoryScraper extends BaseTask {
 
-    public CategoryScraper() {
-        super();
+    public CategoryScraper(long n, String id) {
+        super(n, id);
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getName());
     private final Database database = new Database();
     private final Settings settings = Settings.getInstance();
 
+    @Override
     public void run() {
-        long millisTime = System.currentTimeMillis();
+        Date d = new Date();
+        DateFormat df = new SimpleDateFormat("HH:mm:ss:SSS");
+
+        long startTime = System.currentTimeMillis();
+        d.setTime(startTime);
         Gson gson = new Gson();
 
-        LOGGER.info("Starting category scraping, this will take awhile...");
+        LOGGER.info("Starting task {} at {}, this will take awhile...", super.id, df.format(d));
 
         JsonArray jsonArray = JsonParser.parseString(database.callGet(settings.getBaseUrl().concat("/categories")))
                 .getAsJsonArray();
@@ -68,10 +76,14 @@ public class CategoryScraper {
         Set<CategoryDTO> responseCategories = database.postMultiple(nodes,
                 settings.getApiURL().concat("/api/categories/all"));
 
-        responseCategories.forEach(value -> LOGGER.info("{}", value));
+        long endTime = System.currentTimeMillis();
+        d.setTime(endTime);
 
         LOGGER.info("Response stats : Size == {}, ", responseCategories.size());
-        LOGGER.info("Elapsed time: {}s", (System.currentTimeMillis() - millisTime) / 1000);
+        LOGGER.info("Ending task {} at {} after {} s", super.id, df.format(d), (endTime - startTime) / 1000);
+
+        boolean b = database.toggleActive();
+        LOGGER.info("Toggled active, active == {}", b);
     }
 
 }
