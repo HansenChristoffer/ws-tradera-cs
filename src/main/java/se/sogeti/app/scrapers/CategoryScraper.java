@@ -12,7 +12,7 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.sogeti.app.config.Constants;
+import se.sogeti.app.config.Settings;
 import se.sogeti.app.database.Database;
 import se.sogeti.app.models.Category;
 import se.sogeti.app.models.dto.CategoryDTO;
@@ -24,7 +24,8 @@ public class CategoryScraper {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getName());
-    private final Database<CategoryDTO> database = new Database<>();
+    private final Database database = new Database();
+    private final Settings settings = Settings.getInstance();
 
     public void run() {
         long millisTime = System.currentTimeMillis();
@@ -32,7 +33,7 @@ public class CategoryScraper {
 
         LOGGER.info("Starting category scraping, this will take awhile...");
 
-        JsonArray jsonArray = JsonParser.parseString(database.callGet(Constants.BASE_URL.concat("/categories")))
+        JsonArray jsonArray = JsonParser.parseString(database.callGet(settings.getBaseUrl().concat("/categories")))
                 .getAsJsonArray();
 
         Set<Category> categories = new HashSet<>();
@@ -44,7 +45,7 @@ public class CategoryScraper {
 
             if (!node.getTitle().contains("Allt inom ") && !node.getHref().contains("rabatt")) {
                 JsonArray children = JsonParser
-                        .parseString(database.callGet(Constants.BASE_URL.concat(node.getHref()).concat(".json")))
+                        .parseString(database.callGet(settings.getBaseUrl().concat(node.getHref()).concat(".json")))
                         .getAsJsonObject().get("filters").getAsJsonObject().get("categoryFilter").getAsJsonObject()
                         .get("categoryTree").getAsJsonObject().get("children").getAsJsonArray();
 
@@ -64,8 +65,8 @@ public class CategoryScraper {
             }
         }));
 
-        Set<CategoryDTO> responseCategories = database.postMultiple(nodes, "http://".concat(Constants.databaseIp)
-                .concat(":").concat(Constants.databasePort).concat("/api/categories/all"));
+        Set<CategoryDTO> responseCategories = database.postMultiple(nodes,
+                settings.getApiURL().concat("/api/categories/all"));
 
         responseCategories.forEach(value -> LOGGER.info("{}", value));
 
