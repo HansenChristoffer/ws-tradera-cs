@@ -45,10 +45,9 @@ public class Controller {
         Set<CategoryDTO> responseObjects = new HashSet<>();
 
         try {
-            String bodyJson = gson.toJson(objects);
-            LOGGER.info("Objects size == {}", objects.size());
+            String rtnBody = gson.toJson(objects);
 
-            HttpRequest request = HttpRequest.newBuilder().POST(BodyPublishers.ofString(bodyJson)).uri(URI.create(uri))
+            HttpRequest request = HttpRequest.newBuilder().POST(BodyPublishers.ofString(rtnBody)).uri(URI.create(uri))
                     .header("Content-Type", "application/json").header("User-Agent", settings.getInternalUserAgent())
                     .build();
 
@@ -87,10 +86,10 @@ public class Controller {
 
         response.join();
 
-        String bodyJson = "";
+        String rtnBody = "";
 
         try {
-            bodyJson = response.thenApply(HttpResponse::body).get(10, TimeUnit.SECONDS);
+            rtnBody = response.thenApply(HttpResponse::body).get(10, TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
             LOGGER.error("callGet.InterruptedException == {}", ie.getMessage());
             Thread.currentThread().interrupt();
@@ -100,7 +99,33 @@ public class Controller {
             LOGGER.error("callGet.TimeoutException == {}", te.getMessage());
         }
 
-        return bodyJson;
+        return rtnBody;
+    }
+
+    public Boolean toggleActive() {
+        HttpRequest request = HttpRequest.newBuilder().GET()
+                .uri(URI.create(settings.getApiURL().concat("/api/status/toggle?value=cs")))
+                .setHeader("User-Agent", settings.getInternalUserAgent()).build();
+
+        CompletableFuture<HttpResponse<String>> response = client.sendAsync(request,
+                HttpResponse.BodyHandlers.ofString());
+
+        response.join();
+
+        String rtnBody = "";
+
+        try {
+            rtnBody = response.thenApply(HttpResponse::body).get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException ie) {
+            LOGGER.error("callGet.InterruptedException == {}", ie.getMessage());
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException ee) {
+            LOGGER.error("callGet.ExecutionException == {}", ee.getMessage());
+        } catch (TimeoutException te) {
+            LOGGER.error("callGet.TimeoutException == {}", te.getMessage());
+        }
+
+        return Boolean.parseBoolean(rtnBody);
     }
 
 }
