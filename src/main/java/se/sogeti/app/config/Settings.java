@@ -24,7 +24,6 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.sogeti.app.controllers.Controller;
 import se.sogeti.app.database.Database;
 
 public class Settings {
