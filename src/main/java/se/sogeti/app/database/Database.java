@@ -5,21 +5,24 @@ import java.util.Set;
 import se.sogeti.app.controllers.Controller;
 import se.sogeti.app.models.dto.CategoryDTO;
 
-public class Database<T> {
+public class Database {
 
-    private Controller<T> controller;
+    private Controller controller;
 
     public Database() {
-        this.controller = new Controller<>();
+        this.controller = new Controller();
     }
-
 
     public CategoryDTO fetchOpenCategory() {
         return controller.getOpenCategory();
     }
 
-    public Set<T> postMultiple(Set<T> objects, String uri) {
+    public Set<CategoryDTO> postMultiple(Set<CategoryDTO> objects, String uri) {
         return controller.postMultiple(objects, uri);
+    }
+
+    public Boolean toggleActive() {
+        return controller.toggleActive();
     }
 
     public String getPublished(String objectNumber) {
