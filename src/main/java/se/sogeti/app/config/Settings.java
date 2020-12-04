@@ -259,7 +259,6 @@ public class Settings {
         } catch (IOException e) {
             LOGGER.error("Error occured loading the properties file", e);
         }
-
     }
 
     public String getBaseUrl() {
