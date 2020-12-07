@@ -93,6 +93,9 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <systemPropertyVariables>
+                <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
+              </systemPropertyVariables>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>se.sogeti.app.App</mainClass>
