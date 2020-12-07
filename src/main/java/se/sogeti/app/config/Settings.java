@@ -64,7 +64,7 @@ public class Settings {
 
     private ZonedDateTime dateTimeNow;
 
-    private static final String SETTINGS_FILE_PATH = DEFAULT_CONFIG_PATH.concat("linkscraper-settings.xml");
+    private static final String SETTINGS_FILE_PATH = DEFAULT_CONFIG_PATH.concat("categoryscraper-settings.xml");
 
     private Settings() {
         initFileStructure();
@@ -229,15 +229,13 @@ public class Settings {
 
     private void createDefaultSettingsFile() {
         Properties prop = getSortedPropertiesInstance();
+        File f = new File(SETTINGS_FILE_PATH);
 
-        FileOutputStream fos;
-        try {
-            File f = new File(SETTINGS_FILE_PATH);
+        try (FileOutputStream fos = new FileOutputStream(f)) {
             f.setWritable(true);
             f.setReadable(true);
             f.createNewFile();
 
-            fos = new FileOutputStream(f);
             dateTimeNow = ZonedDateTime.now(ZoneId.of(DEFAULT_TIME_ZONE_ID));
 
             prop.setProperty("base_url", DEFAULT_BASE_URL);
@@ -250,14 +248,15 @@ public class Settings {
             prop.setProperty("time_zone_id", String.valueOf(DEFAULT_TIME_ZONE_ID));
             prop.setProperty("lastLoaded", dateTimeNow.toString());
 
-            prop.storeToXML(fos, "Modified");
-            fos.close();
+            prop.storeToXML(fos, "DEFAULT");
         } catch (InvalidPropertiesFormatException e) {
             LOGGER.error("Error occured loading the properties file", e);
         } catch (FileNotFoundException e) {
             LOGGER.error("Error occured loading the properties file", e);
         } catch (IOException e) {
             LOGGER.error("Error occured loading the properties file", e);
+        } catch (Exception e) {
+            LOGGER.error("createDefaultSettingsFile().Exception == {}", e.getMessage());
         }
     }
 
