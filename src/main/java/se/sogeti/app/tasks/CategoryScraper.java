@@ -54,23 +54,22 @@ public class CategoryScraper extends BaseTask {
         categories.forEach(c -> c.getCategoryNodes().forEach(node -> {
 
             if (!node.getTitle().contains("Allt inom ") && !node.getHref().contains("rabatt")) {
-                JsonArray children = JsonParser
+
+                JsonObject activeCategory = JsonParser
                         .parseString(database.callGet(settings.getBaseUrl().concat(node.getHref()).concat(".json")))
                         .getAsJsonObject().get("filters").getAsJsonObject().get("categoryFilter").getAsJsonObject()
-                        .get("categoryTree").getAsJsonObject().get("children").getAsJsonArray();
+                        .get("activeCategory").getAsJsonObject();
 
-                if (children.get(0).getAsJsonObject().keySet().contains("children")) {
-                    JsonArray secondChild = children.get(0).getAsJsonObject().get("children").getAsJsonArray();
+                JsonArray children = activeCategory.get("children").getAsJsonArray();
 
-                    secondChild.forEach(index -> {
-                        JsonObject obj = index.getAsJsonObject();
+                if (children.size() != 0) {
+                    children.forEach(child -> {
+                        JsonObject obj = child.getAsJsonObject();
                         nodes.add(new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
                     });
                 } else {
-                    children.forEach(index -> {
-                        JsonObject obj = index.getAsJsonObject();
-                        nodes.add(new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
-                    });
+                    nodes.add(new CategoryDTO(activeCategory.get("name").getAsString(),
+                            activeCategory.get("url").getAsString(), true));
                 }
             }
         }));
