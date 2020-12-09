@@ -32,6 +32,8 @@ public class CategoryScraper extends BaseTask {
 
     @Override
     public void run() {
+        settings.updateSettings();
+
         Date d = new Date();
         DateFormat df = new SimpleDateFormat("HH:mm:ss:SSS");
 
