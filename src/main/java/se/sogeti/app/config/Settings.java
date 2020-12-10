@@ -132,11 +132,11 @@ public class Settings {
             LOGGER.info("Initilization complete!");
             LOGGER.info("Update complete!");
         } catch (InvalidPropertiesFormatException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("updateSettings().InvalidPropertiesFormatException == {}", e.getMessage());
         } catch (FileNotFoundException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("updateSettings().FileNotFoundException == {}", e.getMessage());
         } catch (IOException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("updateSettings().IOException == {}", e.getMessage());
         }
 
     }
@@ -208,11 +208,11 @@ public class Settings {
 
             return str;
         } catch (InvalidPropertiesFormatException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("fetchApiURL().InvalidPropertiesFormatException == {}", e.getMessage());
         } catch (FileNotFoundException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("fetchApiURL().FileNotFoundException == {}", e.getMessage());
         } catch (IOException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("fetchApiURL().IOException == {}", e.getMessage());
         }
 
         return DEFAULT_API_URL;
@@ -256,13 +256,11 @@ public class Settings {
 
             prop.storeToXML(fos, "DEFAULT");
         } catch (InvalidPropertiesFormatException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("createDefaultSettingsFile().InvalidPropertiesFormatException == {}", e.getMessage());
         } catch (FileNotFoundException e) {
-            LOGGER.error("Error occured loading the properties file", e);
+            LOGGER.error("createDefaultSettingsFile().FileNotFoundException == {}", e.getMessage());
         } catch (IOException e) {
-            LOGGER.error("Error occured loading the properties file", e);
-        } catch (Exception e) {
-            LOGGER.error("createDefaultSettingsFile().Exception == {}", e.getMessage());
+            LOGGER.error("createDefaultSettingsFile().IOException == {}", e.getMessage());
         }
     }
 
