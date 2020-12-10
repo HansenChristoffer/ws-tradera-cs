@@ -39,13 +39,9 @@ public class Settings {
     private static final String DEFAULT_CONFIG_PATH = "./config/";
     private static final String DEFAULT_INTERNAL_USER_AGENT = "Scraper HttpClient JDK11+";
     private static final String DEFAULT_EXTERNAL_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36";
-    private static final boolean DEFAULT_IS_SCHEDULED = false; // Will NOT go by specific time of the day, instead uses
-                                                               // isActive calls with timeout
-    private static final String DEFAULT_ACTIVE_TIME_OF_DAY = "12:00"; // At what time of the day the
-                                                                      // isActive call should happened,
-                                                                      // ONLY if isScheduled == true
     private static final long DEFAULT_ACTIVE_CALL_TIMEOUT = 120; // 2 seconds
     private static final String DEFAULT_TIME_ZONE_ID = "Europe/Paris";
+    private static final int DEFAULT_API_CALL_PAUSE_TIMER = 30;
     // Scheduling related
 
     // Settings
@@ -60,9 +56,9 @@ public class Settings {
     private String externalUserAgent = DEFAULT_EXTERNAL_USER_AGENT;
 
     private String timeZoneId = DEFAULT_TIME_ZONE_ID;
-    private boolean isScheduled = DEFAULT_IS_SCHEDULED;
     private long activeCallTimeout = DEFAULT_ACTIVE_CALL_TIMEOUT;
-    private String activeCallTimeOfDay = DEFAULT_ACTIVE_TIME_OF_DAY;
+
+    private int apiCallPauseTimer = DEFAULT_API_CALL_PAUSE_TIMER;
 
     private ZonedDateTime dateTimeNow;
 
@@ -86,8 +82,13 @@ public class Settings {
 
     public void updateSettings() {
         LOGGER.info("Updating...");
+        File fLss = new File(SETTINGS_FILE_PATH);
 
-        fetchSettingsFile(fetchApiURL());
+        if (!fLss.exists()) {
+            fetchSettingsFile(fetchApiURL(DEFAULT_CONFIG_PATH.concat("DEFAULT.xml")));
+        } else {
+            fetchSettingsFile(fetchApiURL(SETTINGS_FILE_PATH));
+        }
 
         try {
             LOGGER.info("Initilizing settings...");
@@ -105,16 +106,15 @@ public class Settings {
             internalUserAgent = prop.getProperty("internal_user_agent");
             externalUserAgent = prop.getProperty("external_user_agent");
 
-            isScheduled = Boolean.parseBoolean(prop.getProperty("is_scheduled"));
-
             activeCallTimeout = prop.getProperty("active_call_timeout") != null
                     ? Long.valueOf(prop.getProperty("active_call_timeout"))
                     : DEFAULT_ACTIVE_CALL_TIMEOUT;
-            activeCallTimeOfDay = prop.getProperty("active_call_time_of_day");
 
             timeZoneId = prop.getProperty("time_zone_id") != null ? prop.getProperty("time_zone_id")
                     : DEFAULT_TIME_ZONE_ID;
             dateTimeNow = ZonedDateTime.now(ZoneId.of(timeZoneId));
+
+            apiCallPauseTimer = Integer.valueOf(prop.getProperty("api_call_timer"));
 
             prop.setProperty("lastLoaded", dateTimeNow.toString());
 
@@ -193,11 +193,11 @@ public class Settings {
         }
     }
 
-    public String fetchApiURL() {
+    public String fetchApiURL(String settingsURL) {
         Properties prop = new Properties();
 
         try {
-            FileInputStream fis = new FileInputStream(new File(SETTINGS_FILE_PATH));
+            FileInputStream fis = new FileInputStream(new File(settingsURL));
             prop.loadFromXML(fis);
             String str = prop.getProperty("api_url");
             fis.close();
@@ -216,26 +216,27 @@ public class Settings {
 
     private void initFileStructure() {
         File fCnf = new File(getConfigPath());
-        File fLss = new File(SETTINGS_FILE_PATH);
+        File fDs = new File(DEFAULT_CONFIG_PATH.concat("DEFAULT.xml"));
 
         if (!fCnf.exists()) {
             LOGGER.info("fCnf not exist");
             fCnf.mkdirs();
         }
 
-        if (!fLss.exists()) {
-            LOGGER.info("FLss not exist");
+        if (!fDs.exists()) {
+            LOGGER.info("fDs not exist");
             createDefaultSettingsFile();
         }
     }
 
     private void createDefaultSettingsFile() {
         Properties prop = getSortedPropertiesInstance();
-        File f = new File(SETTINGS_FILE_PATH);
+        File f = new File(DEFAULT_CONFIG_PATH.concat("DEFAULT.xml"));
+
+        f.setWritable(true);
+        f.setReadable(true);
 
         try (FileOutputStream fos = new FileOutputStream(f)) {
-            f.setWritable(true);
-            f.setReadable(true);
             f.createNewFile();
 
             dateTimeNow = ZonedDateTime.now(ZoneId.of(DEFAULT_TIME_ZONE_ID));
@@ -244,11 +245,10 @@ public class Settings {
             prop.setProperty("api_url", DEFAULT_API_URL);
             prop.setProperty("internal_user_agent", DEFAULT_INTERNAL_USER_AGENT);
             prop.setProperty("external_user_agent", DEFAULT_EXTERNAL_USER_AGENT);
-            prop.setProperty("is_scheduled", String.valueOf(DEFAULT_IS_SCHEDULED));
             prop.setProperty("active_call_timeout", String.valueOf(DEFAULT_ACTIVE_CALL_TIMEOUT));
-            prop.setProperty("active_call_time_of_day", String.valueOf(DEFAULT_ACTIVE_TIME_OF_DAY));
             prop.setProperty("time_zone_id", String.valueOf(DEFAULT_TIME_ZONE_ID));
             prop.setProperty("lastLoaded", dateTimeNow.toString());
+            prop.setProperty("api_call_timer", String.valueOf(DEFAULT_API_CALL_PAUSE_TIMER));
 
             prop.storeToXML(fos, "DEFAULT");
         } catch (InvalidPropertiesFormatException e) {
@@ -310,32 +310,12 @@ public class Settings {
         this.externalUserAgent = externalUserAgent;
     }
 
-    public boolean isIsScheduled() {
-        return this.isScheduled;
-    }
-
-    public boolean getIsScheduled() {
-        return this.isScheduled;
-    }
-
-    public void setIsScheduled(boolean isScheduled) {
-        this.isScheduled = isScheduled;
-    }
-
     public long getActiveCallTimeout() {
         return this.activeCallTimeout;
     }
 
     public void setActiveCallTimeout(long activeCallTimeout) {
         this.activeCallTimeout = activeCallTimeout;
-    }
-
-    public String getActiveCallTimeOfDay() {
-        return this.activeCallTimeOfDay;
-    }
-
-    public void setActiveCallTimeOfDay(String activeCallTimeOfDay) {
-        this.activeCallTimeOfDay = activeCallTimeOfDay;
     }
 
     public String getTimeZoneId() {
@@ -354,14 +334,22 @@ public class Settings {
         this.dateTimeNow = dateTimeNow;
     }
 
+    public int getApiCallPauseTimer() {
+        return this.apiCallPauseTimer;
+    }
+
+    public void setApiCallPauseTimer(int apiCallPauseTimer) {
+        this.apiCallPauseTimer = apiCallPauseTimer;
+    }
+
     @Override
     public String toString() {
         return "{" + " baseUrl='" + getBaseUrl() + "'" + ", apiURL='" + getApiURL() + "'" + ", apiVersion='"
                 + getApiVersion() + "'" + ", configPath='" + getConfigPath() + "'" + ", internalUserAgent='"
                 + getInternalUserAgent() + "'" + ", externalUserAgent='" + getExternalUserAgent() + "'"
-                + ", timeZoneId='" + getTimeZoneId() + "'" + ", isScheduled='" + isIsScheduled() + "'"
-                + ", activeCallTimeout='" + getActiveCallTimeout() + "'" + ", activeCallTimeOfDay='"
-                + getActiveCallTimeOfDay() + "'" + ", dateTimeNow='" + getDateTimeNow() + "'" + "}";
+                + ", timeZoneId='" + getTimeZoneId() + "'" + ", activeCallTimeout='" + getActiveCallTimeout() + "'"
+                + ", apiCallPauseTimer='" + getApiCallPauseTimer() + "'" + ", dateTimeNow='" + getDateTimeNow() + "'"
+                + "}";
     }
 
 }

@@ -65,19 +65,8 @@ public class App {
 
 				if (b && tasks.containsKey("ScrapeTask") && !ThreadExecutor.contains("ScrapeTask")) {
 					settings.updateSettings();
-					// LOGGER.info(
-					// "Advisable conditions! {\n\tisActive == {}\n\tTask exists == {}\n\tTask
-					// isRunning == {}\n}\n",
-					// b, tasks.containsKey("ScrapeTask"), ThreadExecutor.contains("ScrapeTask"));
 					executeTask("ScrapeTask");
-
-				} else {
-					// LOGGER.info(
-					// "Inadvisable conditions! {\n\tisActive == {}\n\tTask exists == {}\n\tTask
-					// isRunning == {}\n}\n",
-					// b, tasks.containsKey("ScrapeTask"), ThreadExecutor.contains("ScrapeTask"));
 				}
-
 			} catch (Exception e) {
 				LOGGER.error("commenceTask().Exception == {}", e.getMessage());
 			}
