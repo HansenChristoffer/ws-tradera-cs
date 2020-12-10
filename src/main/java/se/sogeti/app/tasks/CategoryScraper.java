@@ -42,7 +42,7 @@ public class CategoryScraper extends BaseTask {
         Gson gson = new Gson();
 
         LOGGER.info("Starting task {} at {}, this will take awhile...", super.id, df.format(d));
-
+        LOGGER.info("Fetching top level categories...");
         JsonArray jsonArray = JsonParser.parseString(database.callGet(settings.getBaseUrl().concat("/categories")))
                 .getAsJsonArray();
 
@@ -50,7 +50,9 @@ public class CategoryScraper extends BaseTask {
         Set<CategoryDTO> nodes = new HashSet<>();
 
         jsonArray.forEach(obj -> categories.add(gson.fromJson(obj.getAsJsonObject(), Category.class)));
+        LOGGER.info("Done fetching!");
 
+        LOGGER.info("Fetching low level categories...");
         categories.forEach(c -> c.getCategoryNodes().forEach(node -> {
             if (!node.isTopLevel() && !node.getHref().contains("rabatt")) {
 
@@ -72,18 +74,19 @@ public class CategoryScraper extends BaseTask {
                 }
             }
         }));
+        LOGGER.info("Done fetching!");
 
+        LOGGER.info("Sending list of CategoryDTO!");
         Set<CategoryDTO> responseCategories = database.postMultiple(nodes,
                 settings.getApiURL().concat("/api/categories/all"));
+        LOGGER.info("Done sending!");
 
         long endTime = System.currentTimeMillis();
         d.setTime(endTime);
 
         LOGGER.info("Response stats : Size == {}, ", responseCategories.size());
+        LOGGER.info("Toggled active, active == {}", database.toggleActive());
         LOGGER.info("Ending task {} at {} after {} s", super.id, df.format(d), (endTime - startTime) / 1000);
-
-        boolean b = database.toggleActive();
-        LOGGER.info("Toggled active, active == {}", b);
     }
 
 }

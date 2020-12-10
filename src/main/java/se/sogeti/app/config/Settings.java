@@ -82,9 +82,10 @@ public class Settings {
 
     public void updateSettings() {
         LOGGER.info("Updating...");
-        File fLss = new File(SETTINGS_FILE_PATH);
+        File fCss = new File(SETTINGS_FILE_PATH);
 
-        if (!fLss.exists()) {
+        if (!fCss.exists()) {
+            LOGGER.info("No settings xml file!");
             fetchSettingsFile(fetchApiURL(DEFAULT_CONFIG_PATH.concat("DEFAULT.xml")));
         } else {
             fetchSettingsFile(fetchApiURL(SETTINGS_FILE_PATH));

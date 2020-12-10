@@ -3,11 +3,11 @@
 <properties>
     <comment>Modified</comment>
     <entry key="active_call_timeout">120</entry>
+    <entry key="api_call_timer">30</entry>
     <entry key="api_url">http://192.168.0.145:8080</entry>
     <entry key="base_url">https://www.tradera.com</entry>
     <entry key="external_user_agent">Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36</entry>
     <entry key="internal_user_agent">Scraper HttpClient JDK11+</entry>
-    <entry key="lastLoaded">2020-12-09T14:34:55.584830800+01:00[Europe/Paris]</entry>
+    <entry key="lastLoaded">2020-12-10T13:17:11.856819800+01:00[Europe/Paris]</entry>
     <entry key="time_zone_id">Europe/Paris</entry>
-    <entry key="api_call_timer">30</entry>
 </properties>
