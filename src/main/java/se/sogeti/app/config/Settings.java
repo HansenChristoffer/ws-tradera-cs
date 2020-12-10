@@ -92,8 +92,11 @@ public class Settings {
 
         try {
             LOGGER.info("Initilizing settings...");
-            FileInputStream fis = new FileInputStream(new File(SETTINGS_FILE_PATH));
 
+            File settingsFile = new File(new File(SETTINGS_FILE_PATH).length() != 0 ? SETTINGS_FILE_PATH
+                    : DEFAULT_CONFIG_PATH.concat("DEFAULT.xml"));
+
+            FileInputStream fis = new FileInputStream(settingsFile);
             Properties prop = getSortedPropertiesInstance();
 
             prop.loadFromXML(fis);
