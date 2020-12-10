@@ -41,7 +41,7 @@ public class Settings {
     private static final String DEFAULT_EXTERNAL_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36";
     private static final long DEFAULT_ACTIVE_CALL_TIMEOUT = 120; // 2 seconds
     private static final String DEFAULT_TIME_ZONE_ID = "Europe/Paris";
-    private static final int DEFAULT_API_CALL_PAUSE_TIMER = 30;
+    private static final int DEFAULT_API_CALL_TIMER = 30;
     // Scheduling related
 
     // Settings
@@ -58,7 +58,7 @@ public class Settings {
     private String timeZoneId = DEFAULT_TIME_ZONE_ID;
     private long activeCallTimeout = DEFAULT_ACTIVE_CALL_TIMEOUT;
 
-    private int apiCallPauseTimer = DEFAULT_API_CALL_PAUSE_TIMER;
+    private int apiCallTimer = DEFAULT_API_CALL_TIMER;
 
     private ZonedDateTime dateTimeNow;
 
@@ -82,14 +82,9 @@ public class Settings {
 
     public void updateSettings() {
         LOGGER.info("Updating...");
-        File fCss = new File(SETTINGS_FILE_PATH);
 
-        if (!fCss.exists()) {
-            LOGGER.info("No settings xml file!");
-            fetchSettingsFile(fetchApiURL(DEFAULT_CONFIG_PATH.concat("DEFAULT.xml")));
-        } else {
-            fetchSettingsFile(fetchApiURL(SETTINGS_FILE_PATH));
-        }
+        File fCss = new File(SETTINGS_FILE_PATH);
+        fetchSettingsFile(fetchApiURL(!fCss.exists() ? DEFAULT_CONFIG_PATH.concat("DEFAULT.xml") : SETTINGS_FILE_PATH));
 
         try {
             LOGGER.info("Initilizing settings...");
@@ -118,7 +113,7 @@ public class Settings {
                     : DEFAULT_TIME_ZONE_ID;
             dateTimeNow = ZonedDateTime.now(ZoneId.of(timeZoneId));
 
-            apiCallPauseTimer = Integer.valueOf(prop.getProperty("api_call_timer"));
+            apiCallTimer = Integer.valueOf(prop.getProperty("api_call_timer"));
 
             prop.setProperty("lastLoaded", dateTimeNow.toString());
 
@@ -252,7 +247,7 @@ public class Settings {
             prop.setProperty("active_call_timeout", String.valueOf(DEFAULT_ACTIVE_CALL_TIMEOUT));
             prop.setProperty("time_zone_id", String.valueOf(DEFAULT_TIME_ZONE_ID));
             prop.setProperty("lastLoaded", dateTimeNow.toString());
-            prop.setProperty("api_call_timer", String.valueOf(DEFAULT_API_CALL_PAUSE_TIMER));
+            prop.setProperty("api_call_timer", String.valueOf(DEFAULT_API_CALL_TIMER));
 
             prop.storeToXML(fos, "DEFAULT");
         } catch (InvalidPropertiesFormatException e) {
@@ -336,12 +331,12 @@ public class Settings {
         this.dateTimeNow = dateTimeNow;
     }
 
-    public int getApiCallPauseTimer() {
-        return this.apiCallPauseTimer;
+    public int getApiCallTimer() {
+        return this.apiCallTimer;
     }
 
-    public void setApiCallPauseTimer(int apiCallPauseTimer) {
-        this.apiCallPauseTimer = apiCallPauseTimer;
+    public void setApiCallTimer(int apiCallPauseTimer) {
+        this.apiCallTimer = apiCallPauseTimer;
     }
 
     @Override
@@ -350,8 +345,7 @@ public class Settings {
                 + getApiVersion() + "'" + ", configPath='" + getConfigPath() + "'" + ", internalUserAgent='"
                 + getInternalUserAgent() + "'" + ", externalUserAgent='" + getExternalUserAgent() + "'"
                 + ", timeZoneId='" + getTimeZoneId() + "'" + ", activeCallTimeout='" + getActiveCallTimeout() + "'"
-                + ", apiCallPauseTimer='" + getApiCallPauseTimer() + "'" + ", dateTimeNow='" + getDateTimeNow() + "'"
-                + "}";
+                + ", apiCallPauseTimer='" + getApiCallTimer() + "'" + ", dateTimeNow='" + getDateTimeNow() + "'" + "}";
     }
 
 }
