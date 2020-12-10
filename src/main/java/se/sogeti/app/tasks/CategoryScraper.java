@@ -52,8 +52,7 @@ public class CategoryScraper extends BaseTask {
         jsonArray.forEach(obj -> categories.add(gson.fromJson(obj.getAsJsonObject(), Category.class)));
 
         categories.forEach(c -> c.getCategoryNodes().forEach(node -> {
-
-            if (!node.getTitle().contains("Allt inom ") && !node.getHref().contains("rabatt")) {
+            if (!node.isTopLevel() && !node.getHref().contains("rabatt")) {
 
                 JsonObject activeCategory = JsonParser
                         .parseString(database.callGet(settings.getBaseUrl().concat(node.getHref()).concat(".json")))
