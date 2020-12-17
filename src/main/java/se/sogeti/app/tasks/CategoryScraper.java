@@ -32,6 +32,8 @@ public class CategoryScraper extends BaseTask {
 
     @Override
     public void run() {
+        settings.updateSettings();
+
         Date d = new Date();
         DateFormat df = new SimpleDateFormat("HH:mm:ss:SSS");
 
@@ -40,7 +42,7 @@ public class CategoryScraper extends BaseTask {
         Gson gson = new Gson();
 
         LOGGER.info("Starting task {} at {}, this will take awhile...", super.id, df.format(d));
-
+        LOGGER.info("Fetching top level categories...");
         JsonArray jsonArray = JsonParser.parseString(database.callGet(settings.getBaseUrl().concat("/categories")))
                 .getAsJsonArray();
 
@@ -48,42 +50,43 @@ public class CategoryScraper extends BaseTask {
         Set<CategoryDTO> nodes = new HashSet<>();
 
         jsonArray.forEach(obj -> categories.add(gson.fromJson(obj.getAsJsonObject(), Category.class)));
+        LOGGER.info("Done fetching!");
 
+        LOGGER.info("Fetching low level categories...");
         categories.forEach(c -> c.getCategoryNodes().forEach(node -> {
+            if (!node.isTopLevel() && !node.getHref().contains("rabatt")) {
 
-            if (!node.getTitle().contains("Allt inom ") && !node.getHref().contains("rabatt")) {
-                JsonArray children = JsonParser
+                JsonObject activeCategory = JsonParser
                         .parseString(database.callGet(settings.getBaseUrl().concat(node.getHref()).concat(".json")))
                         .getAsJsonObject().get("filters").getAsJsonObject().get("categoryFilter").getAsJsonObject()
-                        .get("categoryTree").getAsJsonObject().get("children").getAsJsonArray();
+                        .get("activeCategory").getAsJsonObject();
 
-                if (children.get(0).getAsJsonObject().keySet().contains("children")) {
-                    JsonArray secondChild = children.get(0).getAsJsonObject().get("children").getAsJsonArray();
+                JsonArray children = activeCategory.get("children").getAsJsonArray();
 
-                    secondChild.forEach(index -> {
-                        JsonObject obj = index.getAsJsonObject();
+                if (children.size() != 0) {
+                    children.forEach(child -> {
+                        JsonObject obj = child.getAsJsonObject();
                         nodes.add(new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
                     });
                 } else {
-                    children.forEach(index -> {
-                        JsonObject obj = index.getAsJsonObject();
-                        nodes.add(new CategoryDTO(obj.get("name").getAsString(), obj.get("url").getAsString(), true));
-                    });
+                    nodes.add(new CategoryDTO(activeCategory.get("name").getAsString(),
+                            activeCategory.get("url").getAsString(), true));
                 }
             }
         }));
+        LOGGER.info("Done fetching!");
 
+        LOGGER.info("Sending list of CategoryDTO!");
         Set<CategoryDTO> responseCategories = database.postMultiple(nodes,
                 settings.getApiURL().concat("/api/categories/all"));
+        LOGGER.info("Done sending!");
 
         long endTime = System.currentTimeMillis();
         d.setTime(endTime);
 
         LOGGER.info("Response stats : Size == {}, ", responseCategories.size());
+        LOGGER.info("Toggled active, active == {}", database.toggleActive());
         LOGGER.info("Ending task {} at {} after {} s", super.id, df.format(d), (endTime - startTime) / 1000);
-
-        boolean b = database.toggleActive();
-        LOGGER.info("Toggled active, active == {}", b);
     }
 
 }
