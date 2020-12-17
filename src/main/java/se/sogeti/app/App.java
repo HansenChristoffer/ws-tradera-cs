@@ -58,7 +58,7 @@ public class App {
 		while (!killAll) {
 			try {
 				// How long it should wait until asking API if it should execute its task(s)
-				sleep(settings.getApiCallPauseTimer());
+				sleep(settings.getApiCallTimer());
 
 				boolean b = Boolean
 						.parseBoolean(DATABASE.callGet(settings.getApiURL().concat("/api/status/isActive?value=cs")));
